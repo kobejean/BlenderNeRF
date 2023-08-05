@@ -7,6 +7,7 @@ import bpy
 
 # global addon script variables
 OUTPUT_TRAIN = 'train'
+OUTPUT_VAL = 'val'
 OUTPUT_TEST = 'test'
 CAMERA_NAME = 'BlenderNeRF Camera'
 
@@ -81,23 +82,18 @@ class BlenderNeRF_Operator(bpy.types.Operator):
 
     # camera extrinsics (transform matrices)
     def get_camera_extrinsics(self, scene, camera, mode='TRAIN', method='SOF'):
-        assert mode == 'TRAIN' or mode == 'TEST'
+        assert mode == 'TRAIN' or mode == 'VAL' or mode == 'TEST'
         assert method == 'SOF' or method == 'TTC' or method == 'COS'
 
         initFrame = scene.frame_current
         step = scene.train_frame_steps if (mode == 'TRAIN' and method == 'SOF') else scene.frame_step
-        if (mode == 'TRAIN' and method == 'COS'):
-            end = scene.frame_start + scene.cos_nb_frames - 1
-        elif (mode == 'TRAIN' and method == 'TTC'):
-            end = scene.frame_start + scene.ttc_nb_frames - 1
-        else:
-            end = scene.frame_end
+        end = scene.frame_end
 
         camera_extr_dict = []
         for frame in range(scene.frame_start, end + 1, step):
             scene.frame_set(frame)
             filename = os.path.basename( scene.render.frame_path(frame=frame) )
-            filedir = OUTPUT_TRAIN * (mode == 'TRAIN') + OUTPUT_TEST * (mode == 'TEST')
+            filedir = OUTPUT_TRAIN * (mode == 'TRAIN') + OUTPUT_VAL * (mode == 'VAL') + OUTPUT_TEST * (mode == 'TEST')
 
             frame_data = {
                 'file_path': os.path.join(filedir, filename),
@@ -172,6 +168,7 @@ class BlenderNeRF_Operator(bpy.types.Operator):
             'BlenderNeRF Version': scene.blendernerf_version,
             'Date and Time' : now.strftime("%d/%m/%Y %H:%M:%S"),
             'Train': scene.train_data,
+            'Val': scene.val_data,
             'Test': scene.test_data,
             'AABB': scene.aabb,
             'Render Frames': scene.render_frames,
@@ -199,7 +196,8 @@ class BlenderNeRF_Operator(bpy.types.Operator):
             logdata['Radius'] = scene.sphere_radius
             logdata['Lens'] = str(scene.focal) + ' mm'
             logdata['Seed'] = scene.seed
-            logdata['Frames'] = scene.cos_nb_frames
+            logdata['Train Frames'] = scene.cos_nb_train_frames
+            logdata['Test Frames'] = scene.cos_nb_test_frames
             logdata['Upper Views'] = scene.upper_views
             logdata['Outwards'] = scene.outwards
             logdata['Dataset Name'] = scene.cos_dataset_name

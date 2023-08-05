@@ -86,11 +86,13 @@ def delete_camera(scene, name):
 # non uniform sampling when stretched or squeezed sphere
 def sample_from_sphere(scene):
     # (2 * seed + 1) * (time + 1) to avoid recurring sample for seed = 0 or time = 0
-    random.seed( (2 * scene.seed + 1) * (scene.frame_current + 1) )
+    # random.seed( (2 * scene.seed + 1) * (scene.frame_current + 1) )
+    total = scene.cos_nb_train_frames + scene.cos_nb_test_frames
 
     # sample random angles
-    theta = random.random() * 2 * math.pi
-    phi = random.random() * 2 * math.pi
+    theta = 2 * math.pi * (scene.frame_current % scene.cos_nb_test_frames) / scene.cos_nb_test_frames  #random.random() * 2 * math.pi
+    levels = (scene.cos_nb_train_frames // scene.cos_nb_test_frames) + 1
+    phi = math.pi * (0.20 + 0.25 * ((total - 1 - scene.frame_current) // scene.cos_nb_test_frames) / levels) #random.random() * math.pi * 0.40
 
     # uniform sample from unit sphere, given theta and phi
     unit_x = math.cos(theta) * math.sin(phi)
@@ -195,27 +197,27 @@ def post_render(scene):
         if scene.rendering[1]: # ttc : reset frame end
             scene.frame_end = scene.init_frame_end
 
-        if scene.rendering[2]: # cos : reset camera settings
-            if not scene.init_camera_exists: delete_camera(scene, CAMERA_NAME)
-            if not scene.init_sphere_exists:
-                objects = bpy.data.objects
-                objects.remove(objects[EMPTY_NAME], do_unlink=True)
-                scene.show_sphere = False
-                scene.sphere_exists = False
+        # if scene.rendering[2]: # cos : reset camera settings
+        #     if not scene.init_camera_exists: delete_camera(scene, CAMERA_NAME)
+        #     if not scene.init_sphere_exists:
+        #         objects = bpy.data.objects
+        #         objects.remove(objects[EMPTY_NAME], do_unlink=True)
+        #         scene.show_sphere = False
+        #         scene.sphere_exists = False
 
-            scene.camera = scene.init_active_camera
-            scene.frame_end = scene.init_frame_end
+        #     scene.camera = scene.init_active_camera
+        #     scene.frame_end = scene.init_frame_end
 
         scene.rendering = (False, False, False)
         scene.render.filepath = scene.init_output_path # reset filepath
 
-        # clean directory name (unsupported characters replaced) and output path
-        output_dir = bpy.path.clean_name(method_dataset_name)
-        output_path = os.path.join(scene.save_path, output_dir)
+        # # clean directory name (unsupported characters replaced) and output path
+        # output_dir = bpy.path.clean_name(method_dataset_name)
+        # output_path = os.path.join(scene.save_path, output_dir)
 
-        # compress dataset and remove folder (only keep zip)
-        shutil.make_archive(output_path, 'zip', output_path) # output filename = output_path
-        shutil.rmtree(output_path)
+        # # compress dataset and remove folder (only keep zip)
+        # shutil.make_archive(output_path, 'zip', output_path) # output filename = output_path
+        # shutil.rmtree(output_path)
 
 # set initial property values (bpy.data and bpy.context require a loaded scene)
 @persistent

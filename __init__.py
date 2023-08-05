@@ -23,6 +23,7 @@ VERSION = '.'.join(str(x) for x in bl_info['version'])
 PROPS = [
     # global controllable properties
     ('train_data', bpy.props.BoolProperty(name='Train', description='Construct the training data', default=True) ),
+    ('val_data', bpy.props.BoolProperty(name='Val', description='Construct the validation data', default=True) ),
     ('test_data', bpy.props.BoolProperty(name='Test', description='Construct the testing data', default=True) ),
     ('aabb', bpy.props.IntProperty(name='AABB', description='AABB scale as defined in Instant NGP', default=4, soft_min=1, soft_max=128) ),
     ('render_frames', bpy.props.BoolProperty(name='Render Frames', description='Whether training frames should be rendered. If not selected, only the transforms.json files will be generated', default=True) ),
@@ -54,7 +55,8 @@ PROPS = [
     ('sphere_radius', bpy.props.FloatProperty(name='Radius', description='Radius scale of the training sphere', default=4.0, soft_min=0.01, unit='LENGTH', update=helper.properties_ui_upd) ),
     ('focal', bpy.props.FloatProperty(name='Lens', description='Focal length of the training camera', default=50, soft_min=1, soft_max=5000, unit='CAMERA', update=helper.properties_ui_upd) ),
     ('seed', bpy.props.IntProperty(name='Seed', description='Random seed for sampling views on the training sphere', default=0) ),
-    ('cos_nb_frames', bpy.props.IntProperty(name='Frames', description='Number of training frames randomly sampled from the training sphere', default=100, soft_min=1) ),
+    ('cos_nb_train_frames', bpy.props.IntProperty(name='Train Frames', description='Number of training frames randomly sampled from the training sphere', default=100, soft_min=1) ),
+    ('cos_nb_test_frames', bpy.props.IntProperty(name='TestFrames', description='Number of training frames randomly sampled from the training sphere', default=10, soft_min=1) ),
     ('show_sphere', bpy.props.BoolProperty(name='Sphere', description='Whether to show the training sphere from which random views will be sampled', default=False, update=helper.visualize_sphere) ),
     ('show_camera', bpy.props.BoolProperty(name='Camera', description='Whether to show the training camera', default=False, update=helper.visualize_camera) ),
     ('upper_views', bpy.props.BoolProperty(name='Upper Views', description='Whether to sample views from the upper hemisphere of the training sphere only', default=False) ),
